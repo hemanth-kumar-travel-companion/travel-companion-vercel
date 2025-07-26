@@ -193,7 +193,7 @@ export default function HomePage() {
               <span className="text-sm text-gray-600">Welcome, {user.email}</span>
               <Button variant="outline" size="sm" onClick={() => router.push("/my-trips")} className="gap-2">
                 <Luggage className="h-4 w-4" />
-                My Future Trips
+                My Favourites
               </Button>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4" />
@@ -216,10 +216,10 @@ export default function HomePage() {
         {savedTrips.length > 0 && (
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-semibold text-gray-900">Your Recent Trips</h3>
+              <h3 className="text-2xl font-semibold text-gray-900">Your Favourite Trips</h3>
               <Button variant="outline" onClick={() => router.push("/my-trips")} className="gap-2">
                 <Calendar className="h-4 w-4" />
-                View All Trips
+                View All Favourites
               </Button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

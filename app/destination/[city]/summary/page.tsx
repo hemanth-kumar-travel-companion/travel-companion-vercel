@@ -37,6 +37,8 @@ export default function SummaryPage() {
   const [saving, setSaving] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [isConfirmed, setIsConfirmed] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+  const [isConfirmed, setIsConfirmed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
 
@@ -107,6 +109,50 @@ export default function SummaryPage() {
     }
 
     setSaving(false)
+  }
+
+  const confirmTrip = async () => {
+    if (!user) return
+
+    setConfirming(true)
+    setMessage("")
+
+    const tripData = {
+      user_id: user.id,
+      destination: state.destination,
+      trip_status: 'booked', // Change status to booked when confirmed
+      transport_cost: state.transport.cost,
+      accommodation_cost: state.accommodation.cost,
+      attractions_cost: state.attractions.cost,
+      food_cost: state.food.cost,
+      shopping_cost: state.shopping.budget,
+      total_cost: state.totalCost,
+      transport_details: state.transport,
+      accommodation_details: state.accommodation,
+      attractions_details: state.attractions,
+      food_details: state.food,
+      shopping_details: state.shopping,
+      updated_at: new Date().toISOString(),
+    }
+
+    let result
+    if (tripId) {
+      // Update existing trip with confirmed status
+      result = await supabase.from("trips").update(tripData).eq("id", tripId).eq("user_id", user.id)
+    } else {
+      // Create new trip with confirmed status
+      result = await supabase.from("trips").insert([tripData])
+    }
+
+    if (result.error) {
+      setMessage("Error confirming trip: " + result.error.message)
+    } else {
+      setIsConfirmed(true)
+      setMessage("🎉 Trip confirmed successfully! Your adventure awaits!")
+      setTimeout(() => setMessage(""), 5000)
+    }
+
+    setConfirming(false)
   }
 
   const confirmTrip = async () => {
@@ -412,6 +458,35 @@ TOTAL COST: ₹${state.totalCost.toLocaleString()}
               </div>
             )}
 
+            {!isConfirmed && (
+              <Button
+                onClick={confirmTrip}
+                disabled={confirming || completedSections < totalSections}
+                className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+                size="lg"
+              >
+                {confirming ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Confirming Trip...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4" />
+                    Confirm Trip
+                  </>
+                )}
+              </Button>
+            )}
+            
+            {isConfirmed && (
+              <div className="w-full p-4 bg-green-100 border border-green-300 rounded-lg text-center">
+                <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                <p className="text-green-800 font-semibold">Trip Confirmed!</p>
+                <p className="text-green-700 text-sm">Your trip is now booked and ready to go!</p>
+              </div>
+            )}
+
             <Button onClick={saveTrip} disabled={saving} className="w-full gap-2" size="lg">
               <Save className="h-4 w-4" />
               {saving ? "Saving..." : tripId ? "Update Trip" : "Save This Trip"}
@@ -463,9 +538,18 @@ TOTAL COST: ₹${state.totalCost.toLocaleString()}
                 Confirmed
               </Badge>
             )}
+            {isConfirmed && (
+              <Badge className="bg-green-100 text-green-800">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Confirmed
+              </Badge>
+            )}
           </CardTitle>
           <CardDescription>
             {isConfirmed 
+              ? "Your trip is confirmed! You can still make changes if needed."
+              : "Make changes to your trip plan"
+            }
               ? "Your trip is confirmed! You can still make changes if needed."
               : "Make changes to your trip plan"
             }
@@ -486,6 +570,8 @@ TOTAL COST: ₹${state.totalCost.toLocaleString()}
                   key={action.path}
                   variant="outline"
                   className={`h-20 flex-col gap-2 bg-transparent ${
+                    isConfirmed ? "border-green-200 hover:bg-green-50" : ""
+                  }`}
                     isConfirmed ? "border-green-200 hover:bg-green-50" : ""
                   }`}
                   onClick={() => router.push(`/destination/${city}/${action.path}`)}

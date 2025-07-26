@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
 import {
-  Luggage,
+  CheckCircle,
   Search,
   Calendar,
   MapPin,
@@ -26,7 +26,7 @@ import {
   ShoppingBag,
 } from "lucide-react"
 
-export default function MyTripsPage() {
+export default function ConfirmedTripsPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [trips, setTrips] = useState<any[]>([])
@@ -47,7 +47,7 @@ export default function MyTripsPage() {
 
   useEffect(() => {
     if (user) {
-      fetchTrips()
+      fetchConfirmedTrips()
     }
   }, [user])
 
@@ -55,7 +55,7 @@ export default function MyTripsPage() {
     filterAndSortTrips()
   }, [trips, searchTerm, sortBy, filterBy])
 
-  const fetchTrips = async () => {
+  const fetchConfirmedTrips = async () => {
     if (!user) return
 
     setLoadingTrips(true)
@@ -64,13 +64,14 @@ export default function MyTripsPage() {
         .from("trips")
         .select("*")
         .eq("user_id", user.id)
+        .eq("trip_status", "booked") // Only fetch confirmed trips
         .order("updated_at", { ascending: false })
 
       if (!error && data) {
         setTrips(data)
       }
     } catch (error) {
-      console.error("Error fetching trips:", error)
+      console.error("Error fetching confirmed trips:", error)
     }
     setLoadingTrips(false)
   }
@@ -107,7 +108,7 @@ export default function MyTripsPage() {
   }
 
   const deleteTrip = async (tripId: string) => {
-    const confirmed = confirm("Are you sure you want to delete this trip?")
+    const confirmed = confirm("Are you sure you want to delete this confirmed trip?")
     if (!confirmed) return
 
     try {
@@ -202,8 +203,8 @@ export default function MyTripsPage() {
                 Back to Home
               </Button>
               <div className="flex items-center gap-2">
-                <Luggage className="h-6 w-6 text-blue-600" />
-                <h1 className="text-xl font-bold text-gray-900">My Favourites</h1>
+                <CheckCircle className="h-6 w-6 text-green-600" />
+                <h1 className="text-xl font-bold text-gray-900">My Confirmed Trips</h1>
               </div>
             </div>
             <Button onClick={() => router.push("/")} className="gap-2">
@@ -222,7 +223,7 @@ export default function MyTripsPage() {
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search trips by destination..."
+                  placeholder="Search confirmed trips by destination..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -257,7 +258,7 @@ export default function MyTripsPage() {
           </div>
 
           <div className="flex items-center gap-4 text-sm text-gray-600">
-            <span>Total Trips: {trips.length}</span>
+            <span>Total Confirmed Trips: {trips.length}</span>
             {searchTerm || filterBy !== "all" ? <span>Showing: {filteredTrips.length}</span> : null}
           </div>
         </div>
@@ -265,20 +266,20 @@ export default function MyTripsPage() {
         {/* Trips Grid */}
         {loadingTrips ? (
           <div className="flex items-center justify-center min-h-64">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600"></div>
           </div>
         ) : filteredTrips.length === 0 ? (
           <div className="text-center py-16">
-            <Luggage className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <CheckCircle className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {trips.length === 0 ? "No favourite trips yet" : "No trips match your search"}
+              {trips.length === 0 ? "No confirmed trips yet" : "No trips match your search"}
             </h3>
             <p className="text-gray-600 mb-6">
-              {trips.length === 0 ? "Start planning your first amazing trip!" : "Try adjusting your search or filters"}
+              {trips.length === 0 ? "Confirm your first trip to see it here!" : "Try adjusting your search or filters"}
             </p>
             <Button onClick={() => router.push("/")} className="gap-2">
               <Plus className="h-4 w-4" />
-              Plan Your First Favourite Trip
+              Plan Your First Trip
             </Button>
           </div>
         ) : (
@@ -286,28 +287,30 @@ export default function MyTripsPage() {
             {filteredTrips.map((trip) => {
               const tripDetails = getTripDetails(trip)
               return (
-                <Card key={trip.id} className="hover:shadow-xl transition-all duration-300 hover:scale-105 transform">
+                <Card key={trip.id} className="hover:shadow-xl transition-all duration-300 hover:scale-105 transform border-green-200">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="capitalize flex items-center gap-2">
-                        <MapPin className="h-5 w-5 text-blue-600" />
+                        <MapPin className="h-5 w-5 text-green-600" />
                         {trip.destination}
                       </CardTitle>
-                      <Badge
-                        variant="outline"
-                        className="text-lg font-semibold bg-gradient-to-r from-blue-50 to-blue-100"
-                      >
-                        ₹{trip.total_cost.toLocaleString()}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-green-100 text-green-800">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Confirmed
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className="text-lg font-semibold bg-gradient-to-r from-green-50 to-green-100"
+                        >
+                          ₹{trip.total_cost.toLocaleString()}
+                        </Badge>
+                      </div>
                     </div>
                     <CardDescription className="space-y-1">
                       <div className="flex items-center gap-1 text-xs">
                         <Calendar className="h-3 w-3" />
-                        Created: {new Date(trip.created_at).toLocaleDateString()}
-                      </div>
-                      <div className="flex items-center gap-1 text-xs">
-                        <Calendar className="h-3 w-3" />
-                        Updated: {new Date(trip.updated_at).toLocaleDateString()}
+                        Confirmed: {new Date(trip.updated_at).toLocaleDateString()}
                       </div>
                     </CardDescription>
                   </CardHeader>
@@ -323,10 +326,10 @@ export default function MyTripsPage() {
                             return (
                               <div
                                 key={index}
-                                className="flex items-center justify-between text-xs bg-gray-50 p-2 rounded"
+                                className="flex items-center justify-between text-xs bg-green-50 p-2 rounded"
                               >
                                 <div className="flex items-center gap-2">
-                                  <Icon className="h-3 w-3 text-gray-500" />
+                                  <Icon className="h-3 w-3 text-green-600" />
                                   <span className="font-medium">{detail.label}:</span>
                                   <span className="text-gray-600">{detail.value}</span>
                                 </div>
@@ -338,8 +341,7 @@ export default function MyTripsPage() {
                       </div>
                     ) : (
                       <div className="text-center py-4 text-gray-500 text-sm">
-                        <p>No details added yet</p>
-                        <p>Click Edit to add trip details</p>
+                        <p>Trip confirmed but details not available</p>
                       </div>
                     )}
 
@@ -348,7 +350,7 @@ export default function MyTripsPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1 gap-1 bg-transparent hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-all"
+                        className="flex-1 gap-1 bg-transparent hover:bg-green-50 hover:text-green-600 hover:border-green-300 transition-all"
                         onClick={() => router.push(`/destination/${trip.destination}/summary?tripId=${trip.id}`)}
                       >
                         <Eye className="h-3 w-3" />
@@ -357,7 +359,7 @@ export default function MyTripsPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1 gap-1 bg-transparent hover:bg-green-50 hover:text-green-600 hover:border-green-300 transition-all"
+                        className="flex-1 gap-1 bg-transparent hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-all"
                         onClick={() => router.push(`/destination/${trip.destination}/transport?tripId=${trip.id}`)}
                       >
                         <Edit className="h-3 w-3" />

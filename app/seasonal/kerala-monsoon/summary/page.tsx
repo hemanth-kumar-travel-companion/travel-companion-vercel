@@ -28,6 +28,8 @@ export default function KeralaMonsoonsummaryPage() {
   const { user } = useAuth()
   const router = useRouter()
   const [saving, setSaving] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+  const [isConfirmed, setIsConfirmed] = useState(false)
   const [message, setMessage] = useState("")
 
   const saveTrip = async () => {
@@ -63,6 +65,43 @@ export default function KeralaMonsoonsummaryPage() {
     }
 
     setSaving(false)
+  }
+
+  const confirmTrip = async () => {
+    if (!user) return
+
+    setConfirming(true)
+    setMessage("")
+
+    const tripData = {
+      user_id: user.id,
+      destination: "kerala",
+      trip_status: 'booked', // Change status to booked when confirmed
+      transport_cost: state.transport.cost,
+      accommodation_cost: state.accommodation.cost,
+      attractions_cost: state.attractions.cost,
+      food_cost: state.food.cost,
+      shopping_cost: state.shopping.budget,
+      total_cost: state.totalCost,
+      transport_details: state.transport,
+      accommodation_details: state.accommodation,
+      attractions_details: state.attractions,
+      food_details: state.food,
+      shopping_details: state.shopping,
+      updated_at: new Date().toISOString(),
+    }
+
+    const { error } = await supabase.from("trips").insert([tripData])
+
+    if (error) {
+      setMessage("Error confirming trip: " + error.message)
+    } else {
+      setIsConfirmed(true)
+      setMessage("🎉 Kerala Monsoon trip confirmed successfully! Get ready for an amazing adventure!")
+      setTimeout(() => setMessage(""), 5000)
+    }
+
+    setConfirming(false)
   }
 
   const downloadPDF = () => {
@@ -228,6 +267,35 @@ Best Time: June - September (Monsoon Season)
 
           {/* Action Buttons */}
           <div className="space-y-3">
+            {!isConfirmed && (
+              <Button
+                onClick={confirmTrip}
+                disabled={confirming || completedSections < summaryItems.length}
+                className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+                size="lg"
+              >
+                {confirming ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Confirming Trip...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4" />
+                    Confirm Kerala Trip
+                  </>
+                )}
+              </Button>
+            )}
+            
+            {isConfirmed && (
+              <div className="w-full p-4 bg-green-100 border border-green-300 rounded-lg text-center">
+                <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                <p className="text-green-800 font-semibold">Kerala Trip Confirmed!</p>
+                <p className="text-green-700 text-sm">Your monsoon adventure is now booked!</p>
+              </div>
+            )}
+
             <Button
               onClick={saveTrip}
               disabled={saving}
@@ -253,9 +321,11 @@ Best Time: June - September (Monsoon Season)
           {message && (
             <div
               className={`p-3 rounded-md text-sm ${
-                message.includes("Error")
+                message.includes("Error") || message.includes("error")
                   ? "bg-red-50 text-red-700 border border-red-200"
-                  : "bg-green-50 text-green-700 border border-green-200"
+                  : message.includes("🎉")
+                    ? "bg-green-50 text-green-700 border border-green-200 text-center font-medium"
+                    : "bg-green-50 text-green-700 border border-green-200"
               }`}
             >
               {message}
@@ -267,9 +337,17 @@ Best Time: June - September (Monsoon Season)
       {/* Monsoon Tips */}
       <Card className="bg-blue-50 border-blue-200">
         <CardHeader>
-          <CardTitle className="text-blue-800 flex items-center gap-2">
+          <CardTitle className="text-blue-800 flex items-center justify-between">
+            <div className="flex items-center gap-2">
             <CloudRain className="h-5 w-5" />
             Final Monsoon Tips for Kerala
+            </div>
+            {isConfirmed && (
+              <Badge className="bg-green-100 text-green-800">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Trip Confirmed
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-blue-700">

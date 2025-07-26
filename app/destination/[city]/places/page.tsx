@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useSearchParams } from "next/navigation"
+import { useParams } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -786,15 +786,22 @@ const attractions = {
 
 export default function PlacesPage() {
   const params = useParams()
-  const searchParams = useSearchParams()
   const city = params.city as string
-  const tripId = searchParams.get("tripId")
+  const [tripId, setTripId] = useState<string | null>(null)
   const { user } = useAuth()
   const { state, dispatch } = useTrip()
   const [days, setDays] = useState(state.attractions.days.toString())
   const [selectedPlaces, setSelectedPlaces] = useState<any[]>(state.attractions.places)
   const [activeCategory, setActiveCategory] = useState("nature")
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    // Get tripId from URL search params on client side
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      setTripId(urlParams.get('tripId'))
+    }
+  }, [])
 
   const cityAttractions = attractions[city as keyof typeof attractions] || {}
   const maxPlacesPerDay = 3

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useSearchParams } from "next/navigation"
+import { useParams } from "next/navigation"
 import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -172,13 +172,20 @@ const mealPlans = [
 
 export default function FoodPage() {
   const params = useParams()
-  const searchParams = useSearchParams()
   const city = params.city as string
-  const tripId = searchParams.get("tripId")
+  const [tripId, setTripId] = useState<string | null>(null)
   const { user } = useAuth()
   const { state, dispatch } = useTrip()
   const [selectedPlan, setSelectedPlan] = useState(state.food.plan || "")
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    // Get tripId from URL search params on client side
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      setTripId(urlParams.get('tripId'))
+    }
+  }, [])
 
   const cityDishes = localDishes[city as keyof typeof localDishes] || []
 

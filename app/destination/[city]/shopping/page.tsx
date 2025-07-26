@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -272,6 +272,7 @@ const budgetOptions = [
 
 export default function ShoppingPage() {
   const params = useParams()
+  const router = useRouter()
   const city = params.city as string
   const { state, dispatch } = useTrip()
   const [wantToShop, setWantToShop] = useState(state.shopping.budget > 0 ? "yes" : "")

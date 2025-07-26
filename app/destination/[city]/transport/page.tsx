@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useSearchParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -183,15 +183,23 @@ const transportOptions = {
 
 export default function TransportPage() {
   const params = useParams()
-  const searchParams = useSearchParams()
+  const router = useRouter()
   const city = params.city as string
-  const tripId = searchParams.get("tripId")
+  const [tripId, setTripId] = useState<string | null>(null)
   const { user } = useAuth()
   const { state, dispatch } = useTrip()
   const [selectedMode, setSelectedMode] = useState<"bus" | "train" | "flight">(state.transport.mode)
   const [selectedOption, setSelectedOption] = useState(state.transport.option)
   const [passengers, setPassengers] = useState(state.transport.seats.toString())
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    // Get tripId from URL search params on client side
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      setTripId(urlParams.get('tripId'))
+    }
+  }, [])
 
   useEffect(() => {
     if (tripId && user) {

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/use-auth"
 import { useTrip } from "@/contexts/trip-context"
 import { supabase } from "@/lib/supabase"
-import { Plane, MapPin, Calendar, LogOut, Luggage, Star, CloudRain, Sun, Snowflake } from "lucide-react"
+import { Plane, MapPin, Calendar, LogOut, Luggage, Star, CloudRain, Sun, Snowflake, CheckCircle } from "lucide-react"
 
 const destinations = [
   {
